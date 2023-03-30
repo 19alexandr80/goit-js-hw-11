@@ -11,6 +11,7 @@ const lightbox = new SimpleLightbox('.gallery a', {
 });
 let lastEl = null;
 const galleryEl = document.querySelector('.gallery');
+
 const form = document.querySelector('form');
 // const more = document.querySelector('.load-more');
 const debounceOnScroll = debounce(onScroll, DEBOUNCE_DELAY);
@@ -83,6 +84,15 @@ function criet(params) {
   lightbox.refresh();
   // more.classList.remove('visually-hidden');
   lastEl = galleryEl.lastChild;
+  // console.log(galleryEl.firstElementChild.getBoundingClientRect(), 'jjjjjj');
+  const { height: cardHeight } = document
+    .querySelector('.gallery')
+    .firstElementChild.getBoundingClientRect();
+  console.log(cardHeight);
+  window.scrollBy({
+    top: cardHeight * 2,
+    behavior: 'smooth',
+  });
 }
 function onScroll() {
   if (
