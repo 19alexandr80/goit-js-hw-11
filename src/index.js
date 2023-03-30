@@ -37,6 +37,10 @@ function onsubmit(e) {
     }
     Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
     criet(hits);
+    window.scrollBy({
+      top: 52,
+      behavior: 'smooth',
+    });
   });
   window.addEventListener('scroll', debounceOnScroll);
 }
@@ -84,15 +88,6 @@ function criet(params) {
   lightbox.refresh();
   // more.classList.remove('visually-hidden');
   lastEl = galleryEl.lastChild;
-  // console.log(galleryEl.firstElementChild.getBoundingClientRect(), 'jjjjjj');
-  const { height: cardHeight } = document
-    .querySelector('.gallery')
-    .firstElementChild.getBoundingClientRect();
-  console.log(cardHeight);
-  window.scrollBy({
-    top: cardHeight * 2,
-    behavior: 'smooth',
-  });
 }
 function onScroll() {
   if (
