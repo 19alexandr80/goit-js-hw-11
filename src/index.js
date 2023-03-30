@@ -11,11 +11,8 @@ const lightbox = new SimpleLightbox('.gallery a', {
 });
 let lastEl = null;
 const galleryEl = document.querySelector('.gallery');
-
 const form = document.querySelector('form');
-// const more = document.querySelector('.load-more');
 const debounceOnScroll = debounce(onScroll, DEBOUNCE_DELAY);
-// more.addEventListener('click', loadMore);
 form.addEventListener('submit', onsubmit);
 const aapi = new NewApi();
 function onsubmit(e) {
@@ -23,7 +20,6 @@ function onsubmit(e) {
   window.removeEventListener('scroll', debounceOnScroll);
   loadedElement = aapi.amountOfElements;
   lastEl = null;
-  // more.classList.add('visually-hidden');
   const userValue = e.currentTarget.elements.searchQuery.value;
   aapi.setInput(userValue);
   aapi.resetPege();
@@ -44,20 +40,6 @@ function onsubmit(e) {
   });
   window.addEventListener('scroll', debounceOnScroll);
 }
-// function loadMore() {
-//   more.classList.add('visually-hidden');
-//   aapi
-//     .getUser()
-//     .then(({ hits }) => {
-//       criet(hits);
-//     })
-//     .catch(error => {
-//       Notiflix.Notify.warning(
-//         "We're sorry, but you've reached the end of search results."
-//       );
-//       console.error(error);
-//     });
-// }
 function criet(params) {
   const htmlCard = params
     .map(
@@ -86,7 +68,6 @@ function criet(params) {
     .join('');
   galleryEl.insertAdjacentHTML('beforeEnd', htmlCard);
   lightbox.refresh();
-  // more.classList.remove('visually-hidden');
   lastEl = galleryEl.lastChild;
 }
 function onScroll() {
