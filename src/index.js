@@ -29,8 +29,14 @@ async function observerCallback(entries, observer) {
       );
       return;
     }
-    const data = await aapi.getUser();
-    infiniteScroll(data);
+    // ==================================
+    try {
+      const data = await aapi.getUser();
+      infiniteScroll(data);
+    } catch (error) {
+      console.error(error);
+    }
+    // ===================================
   }
 }
 async function onsubmit(e) {
@@ -48,8 +54,17 @@ async function onsubmit(e) {
   aapi.setInput(userValue);
   aapi.resetPege();
   galleryEl.innerHTML = '';
-  const data = await aapi.getUser();
-  submitProcessing(data);
+  // =======================================
+  try {
+    const data = await aapi.getUser();
+    submitProcessing(data);
+  } catch (error) {
+    console.error(error);
+  }
+  // ========================================
+  // const data = await aapi.getUser();
+  // submitProcessing(data);
+  // ========================================
 }
 function submitProcessing({ hits, totalHits }) {
   if (hits.length === 0) {
