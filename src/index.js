@@ -1,44 +1,69 @@
 import Notiflix from 'notiflix';
 import { NewApi } from './js/api.js';
 import SimpleLightbox from 'simplelightbox';
-// import 'simplelightbox/dist/simple-lightbox.min.css';
-const debounce = require('lodash.debounce');
-const DEBOUNCE_DELAY = 500;
 let loadedElement = 0;
+let lastEl = null;
+const galleryEl = document.querySelector('.gallery');
+const form = document.querySelector('form');
+form.addEventListener('submit', onsubmit);
+const aapi = new NewApi();
 const lightbox = new SimpleLightbox('.gallery a', {
   captionsData: 'alt',
   captionDelay: 250,
 });
-let lastEl = null;
-const galleryEl = document.querySelector('.gallery');
-const form = document.querySelector('form');
-const debounceOnScroll = debounce(onScroll, DEBOUNCE_DELAY);
-form.addEventListener('submit', onsubmit);
-const aapi = new NewApi();
-function onsubmit(e) {
-  e.preventDefault();
-  window.removeEventListener('scroll', debounceOnScroll);
-  loadedElement = aapi.amountOfElements;
-  lastEl = null;
-  const userValue = e.currentTarget.elements.searchQuery.value;
-  aapi.setInput(userValue);
-  aapi.resetPege();
-  galleryEl.innerHTML = '';
-  aapi.getUser().then(({ hits, totalHits }) => {
-    if (hits.length === 0) {
+const options = {
+  root: null,
+  rootMargin: '5px',
+  threshold: 0.5,
+};
+const observer = new IntersectionObserver(observerCallback, options);
+async function observerCallback(entries, observer) {
+  if (entries[0].isIntersecting) {
+    observer.unobserve(lastEl);
+    if (loadedElement > aapi.totalHits) {
+      if (aapi.totalHits < 7) {
+        return;
+      }
       Notiflix.Notify.warning(
-        'Sorry, there are no images matching your search query. Please try again.'
+        "We're sorry, but you've reached the end of search results."
       );
       return;
     }
-    Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
-    criet(hits);
-    window.scrollBy({
-      top: 52,
-      behavior: 'smooth',
-    });
+    const data = await aapi.getUser();
+    infiniteScroll(data);
+  }
+}
+async function onsubmit(e) {
+  e.preventDefault();
+  loadedElement = aapi.amountOfElements;
+  lastEl = null;
+  const userValue = e.currentTarget.elements.searchQuery.value.trim();
+  if (!userValue) {
+    Notiflix.Notify.warning(
+      'Sorry, there are no images matching your search query. Please try again.'
+    );
+    galleryEl.innerHTML = '';
+    return;
+  }
+  aapi.setInput(userValue);
+  aapi.resetPege();
+  galleryEl.innerHTML = '';
+  const data = await aapi.getUser();
+  submitProcessing(data);
+}
+function submitProcessing({ hits, totalHits }) {
+  if (hits.length === 0) {
+    Notiflix.Notify.warning(
+      'Sorry, there are no images matching your search query. Please try again.'
+    );
+    return;
+  }
+  Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
+  criet(hits);
+  window.scrollBy({
+    top: 52,
+    behavior: 'smooth',
   });
-  window.addEventListener('scroll', debounceOnScroll);
 }
 function criet(params) {
   const htmlCard = params
@@ -69,28 +94,9 @@ function criet(params) {
   galleryEl.insertAdjacentHTML('beforeEnd', htmlCard);
   lightbox.refresh();
   lastEl = galleryEl.lastChild;
+  observer.observe(lastEl);
 }
-function onScroll() {
-  if (
-    lastEl.getBoundingClientRect().bottom <
-    document.documentElement.clientHeight
-  ) {
-    if (loadedElement > aapi.totalHits) {
-      Notiflix.Notify.warning(
-        "We're sorry, but you've reached the end of search results."
-      );
-      window.removeEventListener('scroll', debounceOnScroll);
-      return;
-    }
-    aapi
-      .getUser()
-      .then(({ hits }) => {
-        criet(hits);
-        loadedElement = aapi.getAmountOfElements() * (aapi.page - 1);
-      })
-      .catch(error => {
-        window.removeEventListener('scroll', debounceOnScroll);
-        console.error(error);
-      });
-  }
+function infiniteScroll({ hits }) {
+  criet(hits);
+  loadedElement = aapi.getAmountOfElements() * (aapi.page - 1);
 }
